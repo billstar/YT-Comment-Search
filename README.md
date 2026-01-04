@@ -90,13 +90,21 @@ Comments are saved in the following directory structure (default location: `/tmp
 /tmp/youtube_comments/
 ├── VIDEO_ID_1-canonical-video-title/
 │   ├── metadata.md      # Video title, URL, stats
-│   └── comments.md      # All comments with links
+│   ├── comments.md      # All comments with links
+│   ├── CLAUDE.md        # LLM search instructions for Claude
+│   ├── GEMINI.md        # LLM search instructions for Gemini
+│   └── AGENTS.md        # LLM search instructions for other agents
 ├── VIDEO_ID_2-another-video-title/
 │   ├── metadata.md
-│   └── comments.md
+│   ├── comments.md
+│   ├── CLAUDE.md
+│   ├── GEMINI.md
+│   └── AGENTS.md
 ```
 
 Directory names use the format `{VIDEO_ID}-{canonical-title}` where the canonical title is lowercase with all non-alphanumeric characters replaced by dashes. For example, "Rick Astley - Never Gonna Give You Up (Official Video)" becomes `dQw4w9WgXcQ-rick-astley-never-gonna-give-you-up-official-video`.
+
+Each directory includes LLM instruction files that configure AI assistants to search through comments using a consistent, structured format.
 
 You can change the base directory using the `--dir` option. For example, `--dir .` will create `./youtube_comments/` in your current directory.
 
@@ -127,20 +135,36 @@ This is the comment text...
 
 ## Using with LLMs
 
-After downloading comments, navigate to the video directory and use your preferred LLM tool:
+After downloading comments, navigate to the video directory and use your preferred LLM tool. The directory includes instruction files (CLAUDE.md, GEMINI.md, AGENTS.md) that configure AI assistants to search comments with a consistent format.
 
 ```bash
-cd /tmp/youtube_comments/VIDEO_ID
+cd /tmp/youtube_comments/VIDEO_ID-canonical-title
 
-# Use Claude Code
+# Use Claude Code (automatically reads CLAUDE.md)
 claude "What are the main topics discussed in these comments?"
 claude "Find all comments asking questions about the tutorial"
 claude "Summarize the sentiment of these comments"
 
+# Use Gemini CLI (automatically reads GEMINI.md if supported)
+gemini "people who disagree with the main points"
+
 # Or copy the content to use with any LLM
 ```
 
-If you used a custom directory with `--dir`, navigate to that location instead (e.g., `cd ./youtube_comments/VIDEO_ID` if you used `--dir .`).
+If you used a custom directory with `--dir`, navigate to that location instead (e.g., `cd ./youtube_comments/VIDEO_ID-title` if you used `--dir .`).
+
+### LLM Search Instructions
+
+Each video directory includes three instruction files:
+- **CLAUDE.md** - For Claude Code and Claude-based tools
+- **GEMINI.md** - For Gemini CLI and Gemini-based tools
+- **AGENTS.md** - For GitHub Copilot, Cursor, and other AI assistants
+
+These files configure the LLM to return search results in a structured format with:
+- Complete comment text (never summarized)
+- All metadata (author, timestamp, likes, clickable YouTube link)
+- Relevance-sorted results
+- Summary with key themes
 
 The clickable comment links make it easy to view specific comments in their original context on YouTube.
 

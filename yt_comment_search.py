@@ -7,6 +7,7 @@ import os
 import sys
 import argparse
 import re
+import shutil
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 from pathlib import Path
@@ -56,6 +57,32 @@ def canonicalize_title(title):
     return canonical
 
 
+def copy_llm_instructions(video_dir):
+    """Copy LLM search instruction template to the video directory."""
+    # Get the script's directory
+    script_dir = Path(__file__).parent
+    template_path = script_dir / 'LLM-search-instructions-template.md'
+
+    # Check if template exists
+    if not template_path.exists():
+        print(f"Warning: LLM instruction template not found at {template_path}")
+        return
+
+    # Read template content
+    try:
+        with open(template_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        # Copy to three different files
+        for filename in ['CLAUDE.md', 'GEMINI.md', 'AGENTS.md']:
+            target_path = video_dir / filename
+            with open(target_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+
+    except Exception as e:
+        print(f"Warning: Could not copy LLM instruction files: {e}")
+
+
 def create_directory_structure(video_id, base_path='/tmp'):
     """Create the directory structure for storing comments."""
     base_dir = Path(base_path) / 'youtube_comments'
@@ -63,6 +90,9 @@ def create_directory_structure(video_id, base_path='/tmp'):
 
     base_dir.mkdir(parents=True, exist_ok=True)
     video_dir.mkdir(exist_ok=True)
+
+    # Copy LLM instruction files to the directory
+    copy_llm_instructions(video_dir)
 
     return video_dir
 
@@ -311,6 +341,9 @@ def main():
     print(f"Files created:")
     print(f"  - {video_dir / 'metadata.md'}")
     print(f"  - {video_dir / 'comments.md'}")
+    print(f"  - {video_dir / 'CLAUDE.md'}")
+    print(f"  - {video_dir / 'GEMINI.md'}")
+    print(f"  - {video_dir / 'AGENTS.md'}")
 
 
 if __name__ == '__main__':

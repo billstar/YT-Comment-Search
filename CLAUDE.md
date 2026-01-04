@@ -3,6 +3,8 @@
 ## Project Overview
 A Python command-line utility that downloads YouTube video comments and formats them for easy LLM consumption, search and analysis.
 
+**Note:** When the utility downloads comments, it automatically copies LLM search instruction templates (CLAUDE.md, GEMINI.md, AGENTS.md) into each video directory. These files help configure AI assistants to search through comments with consistent formatting.
+
 ## Core Functionality
 
 ### Command Line Interface
@@ -25,20 +27,27 @@ python yt_comment_search.py "https://www.youtube.com/watch?v=VIDEO_ID"
 
 #### Directory Organization
 ```
-./youtube_comments/
-├── VIDEO_ID_1/
+/tmp/youtube_comments/
+├── VIDEO_ID_1-canonical-title/
 │   ├── metadata.md
-│   └── comments.md
-├── VIDEO_ID_2/
+│   ├── comments.md
+│   ├── CLAUDE.md
+│   ├── GEMINI.md
+│   └── AGENTS.md
+├── VIDEO_ID_2-another-title/
 │   ├── metadata.md
-│   └── comments.md
+│   ├── comments.md
+│   ├── CLAUDE.md
+│   ├── GEMINI.md
+│   └── AGENTS.md
 ```
 
-- Parent directory: `youtube_comments/` (created in current working directory)
-- Sub-directory per video: Named using the extracted video ID
-- Two files per video:
+- Parent directory: `youtube_comments/` (default: `/tmp`, configurable with `--dir`)
+- Sub-directory per video: Named as `{VIDEO_ID}-{canonical-title}` where canonical title is lowercase with non-alphanumeric characters replaced by dashes
+- Files per video:
   - `metadata.md`: Video title, URL, comment count, fetch timestamp
   - `comments.md`: All comments in structured markdown format
+  - `CLAUDE.md`, `GEMINI.md`, `AGENTS.md`: LLM search instruction templates
 
 #### Comment Format (comments.md)
 Each comment should be formatted as:
