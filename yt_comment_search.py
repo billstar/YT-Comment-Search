@@ -38,6 +38,24 @@ def extract_video_id(url):
     return None
 
 
+def canonicalize_title(title):
+    """Convert video title to canonical directory name format.
+
+    Example: "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)"
+    becomes: "rick-astley-never-gonna-give-you-up-official-video-4k-remaster"
+    """
+    # Convert to lowercase
+    canonical = title.lower()
+
+    # Replace all non-alphanumeric characters with dashes
+    canonical = re.sub(r'[^a-z0-9]+', '-', canonical)
+
+    # Remove leading/trailing dashes
+    canonical = canonical.strip('-')
+
+    return canonical
+
+
 def create_directory_structure(video_id, base_path='/tmp'):
     """Create the directory structure for storing comments."""
     base_dir = Path(base_path) / 'youtube_comments'
@@ -260,6 +278,21 @@ def main():
         sys.exit(1)
 
     print(f"Video: {metadata['title']}")
+
+    # Rename directory to include canonicalized title
+    canonical_title = canonicalize_title(metadata['title'])
+    new_dir_name = f"{video_id}-{canonical_title}"
+    base_dir = Path(args.dir) / 'youtube_comments'
+    new_video_dir = base_dir / new_dir_name
+
+    # Rename the directory if it doesn't already exist with the new name
+    if video_dir != new_video_dir:
+        if new_video_dir.exists() and not args.force:
+            print(f"Comments already exist in {new_video_dir}")
+            print("Use --force flag to re-fetch")
+            sys.exit(0)
+        video_dir.rename(new_video_dir)
+        video_dir = new_video_dir
 
     # Fetch comments
     comments = fetch_comments(youtube, video_id, args.max_comments)

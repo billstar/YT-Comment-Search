@@ -88,13 +88,15 @@ Comments are saved in the following directory structure (default location: `/tmp
 
 ```
 /tmp/youtube_comments/
-├── VIDEO_ID_1/
+├── VIDEO_ID_1-canonical-video-title/
 │   ├── metadata.md      # Video title, URL, stats
 │   └── comments.md      # All comments with links
-├── VIDEO_ID_2/
+├── VIDEO_ID_2-another-video-title/
 │   ├── metadata.md
 │   └── comments.md
 ```
+
+Directory names use the format `{VIDEO_ID}-{canonical-title}` where the canonical title is lowercase with all non-alphanumeric characters replaced by dashes. For example, "Rick Astley - Never Gonna Give You Up (Official Video)" becomes `dQw4w9WgXcQ-rick-astley-never-gonna-give-you-up-official-video`.
 
 You can change the base directory using the `--dir` option. For example, `--dir .` will create `./youtube_comments/` in your current directory.
 
