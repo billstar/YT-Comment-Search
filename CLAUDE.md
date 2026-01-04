@@ -7,7 +7,7 @@ A Python command-line utility that downloads YouTube video comments and formats 
 
 ### Command Line Interface
 ```bash
-python youtube_comments.py "https://www.youtube.com/watch?v=VIDEO_ID"
+python yt_comment_search.py "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 - Single argument: YouTube URL (any valid format)
 - Should work with various URL formats:
@@ -119,7 +119,7 @@ After running the tool, users can:
 project_root/
 ├── .env                    # API key (git-ignored)
 ├── .gitignore             # Ignore .env, youtube_comments/, etc.
-├── youtube_comments.py    # Main script
+├── yt_comment_search.py    # Main script
 ├── requirements.txt       # Python dependencies
 ├── CLAUDE.md             # This file
 └── README.md             # User documentation
