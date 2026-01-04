@@ -1,13 +1,14 @@
-# Youtube Comment Search
+# YouTube Comment Search
 
-A Python utility to download all comments from a given Youtube video and use the content of those comments as context for LLM-based search.
+A Python command-line utility that downloads YouTube video comments and formats them for easy LLM consumption, search, and analysis.
 
 ## Features
 
-- Download all comments from any public YouTube video
-- Store comments in a searchable format
-- Use natural language queries to search through comments using LLM-powered semantic search
-- Find specific discussions, opinions, or topics mentioned across thousands of comments
+- Download the top 1000 most relevant comments from any public YouTube video
+- Store comments in structured markdown format
+- Each comment includes a clickable link to view it on YouTube
+- Include both top-level comments and their replies
+- Perfect for analysis with Claude Code, Gemini CLI, or other LLM tools
 
 ## Installation
 
@@ -20,36 +21,132 @@ cd YT-Comment-Search
 pip install -r requirements.txt
 ```
 
-## Usage
+## Setup
 
-### 1. Download Comments
+### 1. Get a YouTube API Key
 
-First, download all comments from a YouTube video:
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the YouTube Data API v3
+4. Create credentials (API Key)
+5. Copy your API key
+
+### 2. Configure Environment
+
+Create a `.env` file in the project root:
 
 ```bash
-python yt_comment_search.py <VIDEO_URL>
+cp .env.example .env
 ```
 
-Example:
-```bash
-python yt_comment_search.py download https://www.youtube.com/watch?v=dQw4w9WgXcQ
-```
-
-## Configuration
-
-You'll need to configure:
-
-- **YouTube API Key**: Set your API key in `.env` file or as an environment variable
-
-Create a `.env` file:
+Edit `.env` and add your API key:
 ```
 YOUTUBE_API_KEY=your_api_key_here
 ```
+
+## Usage
+
+### Basic Usage
+
+Download comments from a YouTube video:
+
+```bash
+python yt_comment_search.py "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
+The script accepts various YouTube URL formats:
+```bash
+# Standard URL
+python yt_comment_search.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+# Short URL
+python yt_comment_search.py "https://youtu.be/dQw4w9WgXcQ"
+
+# URL with timestamp
+python yt_comment_search.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=123s"
+```
+
+### Options
+
+```bash
+# Force re-fetch comments (overwrites existing data)
+python yt_comment_search.py "VIDEO_URL" --force
+
+# Specify maximum number of comments (default: 1000)
+python yt_comment_search.py "VIDEO_URL" --max-comments 500
+
+# Specify base directory for storing comments (default: /tmp)
+python yt_comment_search.py "VIDEO_URL" --dir ~/Documents
+
+# Combine multiple options
+python yt_comment_search.py "VIDEO_URL" --dir . --max-comments 500 --force
+```
+
+## Output Structure
+
+Comments are saved in the following directory structure (default location: `/tmp/youtube_comments/`):
+
+```
+/tmp/youtube_comments/
+├── VIDEO_ID_1/
+│   ├── metadata.md      # Video title, URL, stats
+│   └── comments.md      # All comments with links
+├── VIDEO_ID_2/
+│   ├── metadata.md
+│   └── comments.md
+```
+
+You can change the base directory using the `--dir` option. For example, `--dir .` will create `./youtube_comments/` in your current directory.
+
+### Example metadata.md
+```markdown
+# Video Metadata
+
+**Title:** Amazing Video Title
+**Video URL:** https://www.youtube.com/watch?v=VIDEO_ID
+**Total Comments Fetched:** 1000
+**Fetch Date:** 2026-01-03 14:30:22
+**Video ID:** VIDEO_ID
+```
+
+### Example comments.md
+```markdown
+## Comment ID: UgxKREWJwBPtN8lgH6Z4AaABAg
+
+**Author:** John Doe
+**Posted:** 2 weeks ago
+**Likes:** 42
+**Link:** https://www.youtube.com/watch?v=VIDEO_ID&lc=UgxKREWJwBPtN8lgH6Z4AaABAg
+
+This is the comment text...
+
+---
+```
+
+## Using with LLMs
+
+After downloading comments, navigate to the video directory and use your preferred LLM tool:
+
+```bash
+cd /tmp/youtube_comments/VIDEO_ID
+
+# Use Claude Code
+claude "What are the main topics discussed in these comments?"
+claude "Find all comments asking questions about the tutorial"
+claude "Summarize the sentiment of these comments"
+
+# Or copy the content to use with any LLM
+```
+
+If you used a custom directory with `--dir`, navigate to that location instead (e.g., `cd ./youtube_comments/VIDEO_ID` if you used `--dir .`).
+
+The clickable comment links make it easy to view specific comments in their original context on YouTube.
 
 ## Requirements
 
 - Python 3.8+
 - YouTube Data API v3 access
+- Dependencies listed in [requirements.txt](requirements.txt)
 
 ## License
 
