@@ -5,7 +5,8 @@ A Python command-line utility that downloads YouTube video comments and formats 
 ## Features
 
 - Download the top 1000 most relevant comments from any public YouTube video
-- Store comments in structured markdown format
+- Optionally download video transcripts with timestamps
+- Store comments and transcripts in structured markdown format
 - Each comment includes a clickable link to view it on YouTube
 - Include both top-level comments and their replies
 - Perfect for analysis with Claude Code, Gemini CLI, or other LLM tools
@@ -78,8 +79,11 @@ python yt_comment_search.py "VIDEO_URL" --max-comments 500
 # Specify base directory for storing comments (default: /tmp)
 python yt_comment_search.py "VIDEO_URL" --dir ~/Documents
 
+# Download video transcript along with comments
+python yt_comment_search.py "VIDEO_URL" --transcript
+
 # Combine multiple options
-python yt_comment_search.py "VIDEO_URL" --dir . --max-comments 500 --force
+python yt_comment_search.py "VIDEO_URL" --dir . --max-comments 500 --transcript --force
 ```
 
 ## Output Structure
@@ -91,12 +95,14 @@ Comments are saved in the following directory structure (default location: `/tmp
 ├── VIDEO_ID_1-canonical-video-title/
 │   ├── metadata.md      # Video title, URL, stats
 │   ├── comments.md      # All comments with links
+│   ├── transcript.md    # Video transcript (if --transcript used)
 │   ├── CLAUDE.md        # LLM search instructions for Claude
 │   ├── GEMINI.md        # LLM search instructions for Gemini
 │   └── AGENTS.md        # LLM search instructions for other agents
 ├── VIDEO_ID_2-another-video-title/
 │   ├── metadata.md
 │   ├── comments.md
+│   ├── transcript.md    # (if --transcript used)
 │   ├── CLAUDE.md
 │   ├── GEMINI.md
 │   └── AGENTS.md
@@ -131,6 +137,21 @@ You can change the base directory using the `--dir` option. For example, `--dir 
 This is the comment text...
 
 ---
+```
+
+### Example transcript.md
+```markdown
+# Video Transcript
+
+**Video Title:** Amazing Video Title
+**Video URL:** https://www.youtube.com/watch?v=VIDEO_ID
+**Language:** en
+
+---
+
+[0:00] First line of transcript text here...
+[0:05] Second line continues...
+[0:12] And so on...
 ```
 
 ## Using with LLMs

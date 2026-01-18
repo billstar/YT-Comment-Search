@@ -229,6 +229,7 @@ Ensure dependencies are installed:
 ```bash
 pip3 list | grep google-api-python-client
 pip3 list | grep python-dotenv
+pip3 list | grep youtube-transcript-api
 ```
 
 Or activate the virtual environment if you used one:
@@ -240,6 +241,15 @@ source ~/.local/share/YT-Comment-Search/venv/bin/activate
 ### API quota exceeded
 
 The YouTube Data API has a default quota of 10,000 units per day. Each comment fetch uses approximately 1 unit per request (10 requests for 1000 comments = 10 units). If you exceed the quota, wait until the next day or request a quota increase in Google Cloud Console.
+
+### Transcript not available
+
+If you use the `--transcript` flag and see a warning that the transcript is unavailable, this could mean:
+- The video doesn't have captions/subtitles
+- The video owner has disabled transcript access
+- The video is too new and transcripts haven't been generated yet
+
+The `--transcript` flag is optional; comments will still be downloaded even if the transcript fails.
 
 ### Permission denied
 
