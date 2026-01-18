@@ -16,6 +16,12 @@ from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+try:
+    from youtube_transcript_api import YouTubeTranscriptApi
+    TRANSCRIPT_AVAILABLE = True
+except ImportError:
+    TRANSCRIPT_AVAILABLE = False
+
 
 def extract_video_id(url):
     """Extract video ID from various YouTube URL formats."""
@@ -246,6 +252,65 @@ def save_comments(video_dir, video_id, comments):
             f.write("---\n\n")
 
 
+def format_timestamp(seconds):
+    """Convert seconds to [M:SS] or [H:MM:SS] format."""
+    seconds = int(seconds)
+    if seconds >= 3600:
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+        secs = seconds % 60
+        return f"[{hours}:{minutes:02d}:{secs:02d}]"
+    else:
+        minutes = seconds // 60
+        secs = seconds % 60
+        return f"[{minutes}:{secs:02d}]"
+
+
+def fetch_transcript(video_id):
+    """Fetch transcript for a YouTube video."""
+    if not TRANSCRIPT_AVAILABLE:
+        return None, "youtube-transcript-api not installed"
+
+    try:
+        # Use the new instance-based API
+        ytt_api = YouTubeTranscriptApi()
+        transcript_entries = ytt_api.fetch(video_id)
+
+        # Determine language from the transcript entries if available
+        language = 'en'
+
+        return {
+            'entries': transcript_entries,
+            'language': language
+        }, None
+
+    except Exception as e:
+        error_str = str(e).lower()
+        if 'disabled' in error_str:
+            return None, "Transcripts are disabled for this video"
+        elif 'no transcript' in error_str or 'not found' in error_str:
+            return None, "No transcript found for this video"
+        else:
+            return None, f"Error fetching transcript: {e}"
+
+
+def save_transcript(video_dir, video_id, metadata, transcript_data, url):
+    """Save transcript to transcript.md."""
+    transcript_path = video_dir / 'transcript.md'
+
+    with open(transcript_path, 'w', encoding='utf-8') as f:
+        f.write("# Video Transcript\n\n")
+        f.write(f"**Video Title:** {metadata['title']}\n")
+        f.write(f"**Video URL:** {url}\n")
+        f.write(f"**Language:** {transcript_data['language']}\n\n")
+        f.write("---\n\n")
+
+        for entry in transcript_data['entries']:
+            timestamp = format_timestamp(entry.start)
+            text = entry.text.replace('\n', ' ')
+            f.write(f"{timestamp} {text}\n")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Download YouTube video comments for LLM analysis'
@@ -268,8 +333,19 @@ def main():
         default='/tmp',
         help='Base directory for storing comments (default: /tmp)'
     )
+    parser.add_argument(
+        '--transcript',
+        action='store_true',
+        help='Download video transcript (requires youtube-transcript-api)'
+    )
 
     args = parser.parse_args()
+
+    # Check if transcript requested but library not available
+    if args.transcript and not TRANSCRIPT_AVAILABLE:
+        print("Error: --transcript flag requires youtube-transcript-api")
+        print("Install it with: pip install youtube-transcript-api")
+        sys.exit(1)
 
     # Load API key from .env
     load_dotenv()
@@ -317,10 +393,17 @@ def main():
 
     # Rename the directory if it doesn't already exist with the new name
     if video_dir != new_video_dir:
-        if new_video_dir.exists() and not args.force:
-            print(f"Comments already exist in {new_video_dir}")
-            print("Use --force flag to re-fetch")
-            sys.exit(0)
+        if new_video_dir.exists():
+            if not args.force:
+                print(f"Comments already exist in {new_video_dir}")
+                print("Use --force flag to re-fetch")
+                sys.exit(0)
+            else:
+                # If force is true, remove the existing directory before renaming
+                if new_video_dir.is_dir():
+                    shutil.rmtree(new_video_dir)
+                else:
+                    new_video_dir.unlink()
         video_dir.rename(new_video_dir)
         video_dir = new_video_dir
 
@@ -337,10 +420,24 @@ def main():
     save_metadata(video_dir, video_id, metadata, len(comments), args.url)
     save_comments(video_dir, video_id, comments)
 
+    # Fetch and save transcript if requested
+    transcript_saved = False
+    if args.transcript:
+        print("Fetching transcript...")
+        transcript_data, error = fetch_transcript(video_id)
+        if transcript_data:
+            save_transcript(video_dir, video_id, metadata, transcript_data, args.url)
+            transcript_saved = True
+            print(f"Transcript saved ({transcript_data['language']})")
+        else:
+            print(f"Warning: {error}")
+
     print(f"\nSuccess! Fetched {len(comments)} comments to {video_dir}/")
     print(f"Files created:")
     print(f"  - {video_dir / 'metadata.md'}")
     print(f"  - {video_dir / 'comments.md'}")
+    if transcript_saved:
+        print(f"  - {video_dir / 'transcript.md'}")
     print(f"  - {video_dir / 'CLAUDE.md'}")
     print(f"  - {video_dir / 'GEMINI.md'}")
     print(f"  - {video_dir / 'AGENTS.md'}")

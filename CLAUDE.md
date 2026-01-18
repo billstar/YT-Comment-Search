@@ -23,6 +23,12 @@ python yt_comment_search.py "https://www.youtube.com/watch?v=VIDEO_ID"
 - Handle pagination automatically (max 100 comments per API call = 10 requests)
 - Include both top-level comments and their replies
 
+### Transcript Retrieval (Optional)
+- Use `--transcript` flag to download video transcript
+- Uses `youtube-transcript-api` library (install via pip)
+- Saves transcript as `transcript.md` in the video directory
+- Gracefully handle videos without available transcripts
+
 ### Data Storage Structure
 
 #### Directory Organization
@@ -31,12 +37,14 @@ python yt_comment_search.py "https://www.youtube.com/watch?v=VIDEO_ID"
 ├── VIDEO_ID_1-canonical-title/
 │   ├── metadata.md
 │   ├── comments.md
+│   ├── transcript.md      # (if --transcript flag used)
 │   ├── CLAUDE.md
 │   ├── GEMINI.md
 │   └── AGENTS.md
 ├── VIDEO_ID_2-another-title/
 │   ├── metadata.md
 │   ├── comments.md
+│   ├── transcript.md      # (if --transcript flag used)
 │   ├── CLAUDE.md
 │   ├── GEMINI.md
 │   └── AGENTS.md
@@ -47,6 +55,7 @@ python yt_comment_search.py "https://www.youtube.com/watch?v=VIDEO_ID"
 - Files per video:
   - `metadata.md`: Video title, URL, comment count, fetch timestamp
   - `comments.md`: All comments in structured markdown format
+  - `transcript.md`: Video transcript (only if `--transcript` flag used)
   - `CLAUDE.md`, `GEMINI.md`, `AGENTS.md`: LLM search instruction templates
 
 #### Comment Format (comments.md)
@@ -69,11 +78,26 @@ Comment text goes here...
 ```markdown
 # Video Metadata
 
-**Title:** Video Title Here  
-**Video URL:** https://www.youtube.com/watch?v=VIDEO_ID  
-**Total Comments Fetched:** 1000  
-**Fetch Date:** 2026-01-03 14:30:22  
+**Title:** Video Title Here
+**Video URL:** https://www.youtube.com/watch?v=VIDEO_ID
+**Total Comments Fetched:** 1000
+**Fetch Date:** 2026-01-03 14:30:22
 **Video ID:** VIDEO_ID
+```
+
+#### Transcript Format (transcript.md)
+```markdown
+# Video Transcript
+
+**Video Title:** Video Title Here
+**Video URL:** https://www.youtube.com/watch?v=VIDEO_ID
+**Language:** en
+
+---
+
+[0:00] First line of transcript text here...
+[0:05] Second line continues...
+[0:12] And so on...
 ```
 
 ### Comment ID Requirements
@@ -88,6 +112,7 @@ Comment text goes here...
 - Python 3.8+
 - `google-api-python-client` for YouTube Data API v3
 - `python-dotenv` for API key management
+- `youtube-transcript-api` for transcript retrieval (optional feature)
 - Standard library: `os`, `json`, `argparse`, `datetime`, `urllib.parse`
 
 ### API Authentication
@@ -102,6 +127,7 @@ Comment text goes here...
 - Gracefully handle invalid URLs
 - Handle API quota exceeded errors
 - Handle videos with comments disabled
+- Handle videos without available transcripts (when `--transcript` used)
 - Handle network errors
 - Provide clear error messages to the user
 
